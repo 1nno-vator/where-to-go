@@ -1,0 +1,23 @@
+.MuiListItemText-primary {
+    
+}
+
+span.MuiTypography-root {
+    font-weight: bold;
+}
+
+p.MuiTypography-root {
+    color: rgb(218, 218, 218);
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden; 
+    text-overflow: ellipsis;
+}
+
+.MuiList-root:hover {
+    background: skyblue
+}
+
+.MuiSvgIcon-root {
+    margin-left: 15px;
+}

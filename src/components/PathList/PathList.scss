@@ -1,0 +1,26 @@
+.path-zone {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 250px;
+    height: 100%;
+    color: white;
+    background-color: rgba(120, 120, 120, 0.583);
+    z-index: 999;
+    overflow-y: scroll;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+
+    &::-webkit-scrollbar {
+        display:none /* Chrome , Safari , Opera */
+    }
+}
+
+.path-card {
+    display: flex;
+    padding: 15px;
+
+    .path-idx {
+        width: 10%;
+    }
+}
