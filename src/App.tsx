@@ -48,55 +48,56 @@ function App() {
 	useEffect(() => {
 		const searchParams = decodeURI(window.location.pathname);
 
-		if (searchParams.indexOf('/') > -1) {
-			setIsShared(true);
-			const pathObjArr = searchParams
-				.split('/')
-				.filter((v) => v)
-				.map((pathStr) => {
-					const path = pathStr.split(',');
-					return {
-						id: path[0],
-						place_name: path[1],
-						road_address_name: path[2],
-						x: path[3],
-						y: path[4],
-					};
-				});
-
-			for (let i = 0; i < pathObjArr.length; i++) {
-				dispatch(ADD_PATH(pathObjArr[i]));
-				const markerProps = {
-					id: pathObjArr[i].id,
-					title: pathObjArr[i].place_name,
-					latlng: new kakao.maps.LatLng(Number(pathObjArr[i].y), Number(pathObjArr[i].x)),
-				};
-
-				// 마커 이미지의 이미지 주소입니다
-				const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png';
-
-				// 마커 이미지의 이미지 크기 입니다
-				const imageSize = new kakao.maps.Size(24, 35);
-
-				// 마커 이미지를 생성합니다
-				const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
-
-				const find = markersSelector.find((v) => v.getTitle() === pathObjArr[i].place_name);
-
-				if (!find) {
-					// 마커를 생성합니다
-					const marker = new kakao.maps.Marker({
-						map: mapSelector, // 마커를 표시할 지도
-						position: markerProps.latlng, // 마커를 표시할 위치
-						title: markerProps.title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
-						image: markerImage, // 마커 이미지
+		if (markersSelector.length === 0) {
+			if (searchParams.indexOf('/') > -1) {
+				setIsShared(true);
+				const pathObjArr = searchParams
+					.split('/')
+					.filter((v) => v)
+					.map((pathStr) => {
+						const path = pathStr.split(',');
+						return {
+							id: path[0],
+							place_name: path[1],
+							road_address_name: path[2],
+							x: path[3],
+							y: path[4],
+						};
 					});
-					dispatch(ADD_MARKER(marker));
-				} else {
-					//
+
+				for (let i = 0; i < pathObjArr.length; i++) {
+					dispatch(ADD_PATH(pathObjArr[i]));
+					const markerProps = {
+						id: pathObjArr[i].id,
+						title: pathObjArr[i].place_name,
+						latlng: new kakao.maps.LatLng(Number(pathObjArr[i].y), Number(pathObjArr[i].x)),
+					};
+
+					// 마커 이미지의 이미지 주소입니다
+					const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png';
+
+					// 마커 이미지의 이미지 크기 입니다
+					const imageSize = new kakao.maps.Size(24, 35);
+
+					// 마커 이미지를 생성합니다
+					const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
+
+					const find = markersSelector.find((v) => v.getTitle() === pathObjArr[i].place_name);
+
+					if (!find) {
+						// 마커를 생성합니다
+						const marker = new kakao.maps.Marker({
+							map: mapSelector, // 마커를 표시할 지도
+							position: markerProps.latlng, // 마커를 표시할 위치
+							title: markerProps.title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
+							image: markerImage, // 마커 이미지
+						});
+						dispatch(ADD_MARKER(marker));
+					} else {
+						//
+					}
 				}
 			}
-		} else {
 			setIsShared(false);
 		}
 	}, [
