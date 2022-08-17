@@ -19,8 +19,20 @@
 .path-card {
     display: flex;
     padding: 15px;
+    
+    &:focus {
+        outline: none !important;
+    }
+    
+    &:focus-within{
+        outline: none !important;
+    }
 
     .path-idx {
         width: 10%;
     }
+}
+
+.hover-card:hover {
+    background: skyblue;
 }

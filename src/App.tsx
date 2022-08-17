@@ -6,7 +6,14 @@ import ListCard from './components/ListCard/ListCard';
 import { useAppDispatch, useAppSelector } from './app/hooks';
 import { SET_MAP_INSTANCE } from './features/map/mapSlice';
 import PathList from './components/PathList/PathList';
-import { ADD_MARKER, ADD_PATH, CLEAR_MARKERS, CLEAR_PATH, CLEAR_POLYLINE } from './features/path/pathSlice';
+import {
+	ADD_MARKER,
+	ADD_PATH,
+	CLEAR_MARKERS,
+	CLEAR_PATH,
+	CLEAR_POLYLINE,
+	REORDER_PATH,
+} from './features/path/pathSlice';
 
 declare global {
 	interface Window {
@@ -46,58 +53,67 @@ function App() {
 	const [render, setRender] = useState<JSX.Element[] | null>();
 
 	useEffect(() => {
+		const container = document.getElementById('map');
+		const options = {
+			center: new kakao.maps.LatLng(33.450701, 126.570667),
+			level: 3,
+		};
+
+		dispatch(SET_MAP_INSTANCE(new kakao.maps.Map(container, options)));
+	}, [dispatch, kakao.maps.LatLng, kakao.maps.Map]);
+
+	useEffect(() => {
 		const searchParams = decodeURI(window.location.pathname);
 
-		if (markersSelector.length === 0) {
-			if (searchParams.indexOf('/') > -1) {
-				setIsShared(true);
-				const pathObjArr = searchParams
-					.split('/')
-					.filter((v) => v)
-					.map((pathStr) => {
-						const path = pathStr.split(',');
-						return {
-							id: path[0],
-							place_name: path[1],
-							road_address_name: path[2],
-							x: path[3],
-							y: path[4],
-						};
-					});
-
-				for (let i = 0; i < pathObjArr.length; i++) {
-					dispatch(ADD_PATH(pathObjArr[i]));
-					const markerProps = {
-						id: pathObjArr[i].id,
-						title: pathObjArr[i].place_name,
-						latlng: new kakao.maps.LatLng(Number(pathObjArr[i].y), Number(pathObjArr[i].x)),
+		if (searchParams.indexOf('/', 1) > -1) {
+			setIsShared(true);
+			const pathObjArr = searchParams
+				.split('/')
+				.filter((v) => v)
+				.map((pathStr) => {
+					const path = pathStr.split(',');
+					return {
+						id: path[0],
+						place_name: path[1],
+						road_address_name: path[2],
+						x: path[3],
+						y: path[4],
 					};
+				});
 
-					// 마커 이미지의 이미지 주소입니다
-					const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png';
+			dispatch(REORDER_PATH(pathObjArr));
+			for (let i = 0; i < pathObjArr.length; i++) {
+				const markerProps = {
+					id: pathObjArr[i].id,
+					title: pathObjArr[i].place_name,
+					latlng: new kakao.maps.LatLng(Number(pathObjArr[i].y), Number(pathObjArr[i].x)),
+				};
 
-					// 마커 이미지의 이미지 크기 입니다
-					const imageSize = new kakao.maps.Size(24, 35);
+				// 마커 이미지의 이미지 주소입니다
+				const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png';
 
-					// 마커 이미지를 생성합니다
-					const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
+				// 마커 이미지의 이미지 크기 입니다
+				const imageSize = new kakao.maps.Size(24, 35);
 
-					const find = markersSelector.find((v) => v.getTitle() === pathObjArr[i].place_name);
+				// 마커 이미지를 생성합니다
+				const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
 
-					if (!find) {
-						// 마커를 생성합니다
-						const marker = new kakao.maps.Marker({
-							map: mapSelector, // 마커를 표시할 지도
-							position: markerProps.latlng, // 마커를 표시할 위치
-							title: markerProps.title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
-							image: markerImage, // 마커 이미지
-						});
-						dispatch(ADD_MARKER(marker));
-					} else {
-						//
-					}
+				const find = markersSelector.find((v) => v.getTitle() === pathObjArr[i].place_name);
+
+				if (!find) {
+					// 마커를 생성합니다
+					const marker = new kakao.maps.Marker({
+						map: mapSelector, // 마커를 표시할 지도
+						position: markerProps.latlng, // 마커를 표시할 위치
+						title: markerProps.title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
+						image: markerImage, // 마커 이미지
+					});
+					dispatch(ADD_MARKER(marker));
+				} else {
+					find.setMap(mapSelector);
 				}
 			}
+		} else {
 			setIsShared(false);
 		}
 	}, [
@@ -134,16 +150,6 @@ function App() {
 		});
 		setRender(renderData);
 	};
-
-	useEffect(() => {
-		const container = document.getElementById('map');
-		const options = {
-			center: new kakao.maps.LatLng(33.450701, 126.570667),
-			level: 3,
-		};
-
-		dispatch(SET_MAP_INSTANCE(new kakao.maps.Map(container, options)));
-	}, [dispatch, kakao.maps.LatLng, kakao.maps.Map]);
 
 	const searchTextHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setSearchText(e.target.value);
@@ -192,12 +198,12 @@ function App() {
 
 	return (
 		<div>
-			<div className="top-bar">
+			<div className="top-bar" style={{ display: isShared ? 'none' : 'block' }}>
 				<Button className="top-bar-button" variant="contained" onClick={resetData}>
 					초기화
 				</Button>
 			</div>
-			<div id="search-zone" className="search-zone" style={{ display: render ? 'block' : 'block' }}>
+			<div id="search-zone" className="search-zone" style={{ display: isShared ? 'none' : 'block' }}>
 				<div className="search-input">
 					<input
 						type="text"

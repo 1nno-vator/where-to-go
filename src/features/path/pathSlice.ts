@@ -31,6 +31,9 @@ export const pathSlice = createSlice({
 		CLEAR_PATH: (state) => {
 			state.path = [];
 		},
+		REORDER_PATH: (state, action: PayloadAction<Path[]>) => {
+			state.path = action.payload;
+		},
 		ADD_MARKER: (state, action: PayloadAction<any>) => {
 			state.markers = [...state.markers, action.payload];
 		},
@@ -52,6 +55,7 @@ export const pathSlice = createSlice({
 	},
 });
 
-export const { ADD_PATH, CLEAR_PATH, ADD_MARKER, CLEAR_MARKERS, DRAW_POLYLINE, CLEAR_POLYLINE } = pathSlice.actions;
+export const { ADD_PATH, CLEAR_PATH, REORDER_PATH, ADD_MARKER, CLEAR_MARKERS, DRAW_POLYLINE, CLEAR_POLYLINE } =
+	pathSlice.actions;
 
 export default pathSlice.reducer;
