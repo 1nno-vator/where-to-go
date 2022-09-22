@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import './App.scss';
 import { Button } from '@mui/material';
 import { useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMagnifyingGlass, faBars } from '@fortawesome/free-solid-svg-icons';
 import ListCard from './components/ListCard/ListCard';
 import { useAppDispatch, useAppSelector } from './app/hooks';
 import { SET_MAP_INSTANCE } from './features/map/mapSlice';
@@ -47,10 +49,13 @@ function App() {
 	const mapSelector = useAppSelector((state) => state.map.mapInstance);
 	const markersSelector = useAppSelector((state) => state.path.markers);
 
+	const [showSearch, setShowSearch] = useState<boolean>(true);
 	const [isShared, setIsShared] = useState<boolean>(false);
 	const [searchText, setSearchText] = useState<string>('');
 	const [shareButtonDisabled, setSharedButtonDisabled] = useState<boolean>(true);
 	const [render, setRender] = useState<JSX.Element[] | null>();
+
+	const [shareSetCheck, setShareSetCheck] = useState<boolean>(false);
 
 	useEffect(() => {
 		const container = document.getElementById('map');
@@ -65,8 +70,7 @@ function App() {
 	useEffect(() => {
 		const searchParams = decodeURI(window.location.pathname);
 
-		if (searchParams.indexOf('/', 1) > -1) {
-			setIsShared(true);
+		if (searchParams.indexOf('/', 1) > -1 && !shareSetCheck) {
 			const pathObjArr = searchParams
 				.split('/')
 				.filter((v) => v)
@@ -82,6 +86,7 @@ function App() {
 				});
 
 			dispatch(REORDER_PATH(pathObjArr));
+
 			for (let i = 0; i < pathObjArr.length; i++) {
 				const markerProps = {
 					id: pathObjArr[i].id,
@@ -112,6 +117,8 @@ function App() {
 				} else {
 					find.setMap(mapSelector);
 				}
+
+				setIsShared(true);
 			}
 		} else {
 			setIsShared(false);
@@ -124,11 +131,13 @@ function App() {
 		kakao.maps.Size,
 		mapSelector,
 		markersSelector,
+		shareSetCheck,
 	]);
 
 	useEffect(() => {
 		if (pathListSelector.length > 1) {
 			setSharedButtonDisabled(false);
+			setShareSetCheck(true);
 		} else {
 			setSharedButtonDisabled(true);
 		}
@@ -203,24 +212,39 @@ function App() {
 					초기화
 				</Button>
 			</div>
-			<div id="search-zone" className="search-zone" style={{ display: isShared ? 'none' : 'block' }}>
-				<div className="search-input">
-					<input
-						type="text"
-						name="search-text"
-						placeholder="장소검색"
-						value={searchText}
-						onChange={searchTextHandler}
-						onKeyDown={keyHandler}
-					/>
-					<Button variant="contained" onClick={searchBtnHandler}>
-						검색
-					</Button>
+			<div className="sidetab">
+				<div className="tab-buttons">
+					<div className="tab-button">
+						<span onClick={() => setShowSearch(true)} role="presentation">
+							<FontAwesomeIcon icon={faMagnifyingGlass} style={{ color: showSearch ? 'white' : 'lightgrey' }} />
+						</span>
+					</div>
+					<div className="tab-button">
+						<span onClick={() => setShowSearch(false)} role="presentation">
+							<FontAwesomeIcon icon={faBars} style={{ color: !showSearch ? 'white' : 'lightgrey' }} />
+						</span>
+					</div>
 				</div>
-				<div className="search-list">{render}</div>
+				<div id="search-zone" className="search-zone" style={{ display: showSearch ? 'block' : 'none' }}>
+					<div className="search-input">
+						<input
+							type="text"
+							name="search-text"
+							placeholder="장소검색"
+							value={searchText}
+							onChange={searchTextHandler}
+							onKeyDown={keyHandler}
+						/>
+						<Button variant="contained" onClick={searchBtnHandler}>
+							검색
+						</Button>
+					</div>
+					<div className="search-list">{render}</div>
+				</div>
+				<PathList />
 			</div>
 			<div id="map" style={{ width: '100vw', height: '100vh' }} />
-			<PathList />
+
 			<div className="footer">
 				<Button className="footer-button" variant="contained" onClick={makeShareLink} disabled={shareButtonDisabled}>
 					공유하기

@@ -6,28 +6,50 @@ body {
  }
 
 .search-zone {
-    position: fixed;
-    left: 0;
-    top: 0;
     width: 250px;
     height: 100%;
     color: white;
     background-color: rgba(120, 120, 120, 0.583);
     z-index: 999;
     overflow-y: scroll;
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-   
-    &::-webkit-scrollbar {
+   -ms-overflow-style: none; /* IE and Edge */
+   scrollbar-width: none; /* Firefox */
+   &::-webkit-scrollbar {
       display:none /* Chrome , Safari , Opera */
-    }
+   }
+}
+
+.sidetab {
+   position: fixed;
+   left: 0;
+   top: 0;
+   width: 250px;
+   height: 100%;
+   color: white;
+   background-color: rgba(120, 120, 120, 0.583);
+   z-index: 999;
+
+   .tab-buttons {
+      display: flex;
+      padding: 10px;
+      justify-content: space-evenly;
+      color: white;
+      background-color: rgba(120, 120, 120, 0.583);
+   }
+}
+
+.tab-button {
+   cursor: pointer;
+
+   span {
+      padding: 15px;
+   }
 }
 
 .search-input {
     display: flex;
     justify-content: center;
     flex-wrap: nowrap;
-    margin-top: 25px;
 
     input[type=text] {
         border: none;

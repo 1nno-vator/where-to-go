@@ -8,6 +8,8 @@ import FolderIcon from '@mui/icons-material/Folder';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { ADD_MARKER, ADD_PATH } from '../../features/path/pathSlice';
 
+const DOMAIN = 'http://localhost:3000/';
+
 type ListCardProp = {
 	id: string;
 	place_name: string;
@@ -22,6 +24,7 @@ function ListCard(prop: ListCardProp) {
 	const data = { ...prop };
 	const dispatch = useAppDispatch();
 	const mapSelector = useAppSelector((state) => state.map.mapInstance);
+	const pathListSelector = useAppSelector((state) => state.path.path);
 	const markersSelector = useAppSelector((state) => state.path.markers);
 
 	const addMarkerData = (_data: ListCardProp) => {

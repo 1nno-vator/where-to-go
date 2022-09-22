@@ -25,7 +25,7 @@ function PathCard({ pathData, idx, isShared }: PathCardProps) {
 		<div
 			role="button"
 			tabIndex={idx}
-			className={`path-card ${isShared ? 'hover-card' : ''}`}
+			className="path-card"
 			style={{ cursor: isShared ? 'pointer' : 'move' }}
 			onClick={() => panToPath(pathData)}
 			onKeyDown={() => panToPath(pathData)}
@@ -96,7 +96,6 @@ function PathList() {
 				list={pathListSelector.map((x) => ({ ...x, chosen: true }))}
 				setList={(newState) => dispatch(REORDER_PATH(newState))}
 				animation={200}
-				disabled={isShared}
 			>
 				{pathListSelector.map((path: Path, idx) => (
 					<PathCard
