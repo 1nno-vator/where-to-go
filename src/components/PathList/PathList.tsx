@@ -30,7 +30,7 @@ function PathCard({ pathData, idx, isShared }: PathCardProps) {
 			onClick={() => panToPath(pathData)}
 			onKeyDown={() => panToPath(pathData)}
 		>
-			<div className="path-idx">{idx}</div>
+			<div className="path-idx">{idx + 1}</div>
 			<div className="path-name">{pathData.place_name}</div>
 		</div>
 	);

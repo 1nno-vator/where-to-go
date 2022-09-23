@@ -57,15 +57,31 @@ function App() {
 
 	const [shareSetCheck, setShareSetCheck] = useState<boolean>(false);
 
+	// 인포윈도우를 표시하는 클로저를 만드는 함수입니다
+	const makeOverListener = (map: any, marker: any, infowindow: any) => {
+		return () => {
+			infowindow.open(map, marker);
+		};
+	};
+
+	// 인포윈도우를 닫는 클로저를 만드는 함수입니다
+	const makeOutListener = (infowindow: any) => {
+		return () => {
+			infowindow.close();
+		};
+	};
+
 	useEffect(() => {
 		const container = document.getElementById('map');
-		const options = {
-			center: new kakao.maps.LatLng(33.450701, 126.570667),
-			level: 3,
-		};
-
-		dispatch(SET_MAP_INSTANCE(new kakao.maps.Map(container, options)));
-	}, [dispatch, kakao.maps.LatLng, kakao.maps.Map]);
+		if (!mapSelector) {
+			const options = {
+				center: new kakao.maps.LatLng(33.450701, 126.570667),
+				level: 3,
+			};
+			dispatch(SET_MAP_INSTANCE(new kakao.maps.Map(container, options)));
+		}
+		console.log('ㅁ모지');
+	}, [dispatch, kakao.maps.LatLng, kakao.maps.Map, mapSelector]);
 
 	useEffect(() => {
 		const searchParams = decodeURI(window.location.pathname);
@@ -112,9 +128,32 @@ function App() {
 						position: markerProps.latlng, // 마커를 표시할 위치
 						title: markerProps.title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
 						image: markerImage, // 마커 이미지
+						clickable: true,
 					});
+					// 마커에 표시할 인포윈도우를 생성합니다
+					const iwContent = `<div style="padding: 10px;"><div>${markerProps.title}</div></div>`;
+					const infowindow = new kakao.maps.InfoWindow({
+						content: iwContent, // 인포윈도우에 표시할 내용
+					});
+
+					// 마커에 mouseover 이벤트와 mouseout 이벤트를 등록합니다
+					// 이벤트 리스너로는 클로저를 만들어 등록합니다
+					// for문에서 클로저를 만들어 주지 않으면 마지막 마커에만 이벤트가 등록됩니다
+					kakao.maps.event.addListener(marker, 'mouseover', makeOverListener(mapSelector, marker, infowindow));
+					kakao.maps.event.addListener(marker, 'mouseout', makeOutListener(infowindow));
 					dispatch(ADD_MARKER(marker));
 				} else {
+					// 마커에 표시할 인포윈도우를 생성합니다
+					const iwContent = `<div style="padding: 10px;"><div>${markerProps.title}</div></div>`;
+					const infowindow = new kakao.maps.InfoWindow({
+						content: iwContent, // 인포윈도우에 표시할 내용
+					});
+
+					// 마커에 mouseover 이벤트와 mouseout 이벤트를 등록합니다
+					// 이벤트 리스너로는 클로저를 만들어 등록합니다
+					// for문에서 클로저를 만들어 주지 않으면 마지막 마커에만 이벤트가 등록됩니다
+					kakao.maps.event.addListener(find, 'mouseover', makeOverListener(mapSelector, find, infowindow));
+					kakao.maps.event.addListener(find, 'mouseout', makeOutListener(infowindow));
 					find.setMap(mapSelector);
 				}
 
@@ -125,10 +164,12 @@ function App() {
 		}
 	}, [
 		dispatch,
+		kakao.maps.InfoWindow,
 		kakao.maps.LatLng,
 		kakao.maps.Marker,
 		kakao.maps.MarkerImage,
 		kakao.maps.Size,
+		kakao.maps.event,
 		mapSelector,
 		markersSelector,
 		shareSetCheck,
@@ -196,6 +237,11 @@ function App() {
 	};
 
 	const makeShareLink = () => {
+		if (pathListSelector.length < 1) {
+			alert('경로를 선택해주세요.');
+			return;
+		}
+
 		const pathStr = pathListSelector
 			.map((path) => {
 				return `${path.id},${path.place_name},${path.road_address_name},${path.x},${path.y}`;
@@ -207,37 +253,40 @@ function App() {
 
 	return (
 		<div>
-			<div className="top-bar" style={{ display: isShared ? 'none' : 'block' }}>
-				<Button className="top-bar-button" variant="contained" onClick={resetData}>
-					초기화
-				</Button>
-			</div>
 			<div className="sidetab">
 				<div className="tab-buttons">
-					<div className="tab-button">
-						<span onClick={() => setShowSearch(true)} role="presentation">
-							<FontAwesomeIcon icon={faMagnifyingGlass} style={{ color: showSearch ? 'white' : 'lightgrey' }} />
-						</span>
+					<div
+						className={`tab-button ${showSearch ? 'selected-tab' : ''}`}
+						onClick={() => setShowSearch(true)}
+						role="presentation"
+					>
+						<span>검색</span>
 					</div>
-					<div className="tab-button">
-						<span onClick={() => setShowSearch(false)} role="presentation">
-							<FontAwesomeIcon icon={faBars} style={{ color: !showSearch ? 'white' : 'lightgrey' }} />
-						</span>
+					<div
+						className={`tab-button ${!showSearch ? 'selected-tab' : ''}`}
+						onClick={() => setShowSearch(false)}
+						role="presentation"
+					>
+						<span>목록</span>
 					</div>
 				</div>
 				<div id="search-zone" className="search-zone" style={{ display: showSearch ? 'block' : 'none' }}>
 					<div className="search-input">
-						<input
-							type="text"
-							name="search-text"
-							placeholder="장소검색"
-							value={searchText}
-							onChange={searchTextHandler}
-							onKeyDown={keyHandler}
-						/>
-						<Button variant="contained" onClick={searchBtnHandler}>
-							검색
-						</Button>
+						<div className="input-container">
+							<input
+								type="text"
+								name="search-text"
+								placeholder="장소를 입력해주세요"
+								value={searchText}
+								onChange={searchTextHandler}
+								onKeyDown={keyHandler}
+							/>
+							<FontAwesomeIcon
+								icon={faMagnifyingGlass}
+								style={{ padding: '5px', marginRight: '15px', cursor: 'pointer' }}
+								onClick={search}
+							/>
+						</div>
 					</div>
 					<div className="search-list">{render}</div>
 				</div>
@@ -246,8 +295,21 @@ function App() {
 			<div id="map" style={{ width: '100vw', height: '100vh' }} />
 
 			<div className="footer">
-				<Button className="footer-button" variant="contained" onClick={makeShareLink} disabled={shareButtonDisabled}>
+				<Button
+					className="footer-button"
+					variant="contained"
+					onClick={makeShareLink}
+					style={{ color: 'white', background: '#6A97E4' }}
+				>
 					공유하기
+				</Button>
+				<Button
+					className="footer-button"
+					variant="contained"
+					onClick={resetData}
+					style={{ color: '#6A97E4', background: '#DDDDDD' }}
+				>
+					초기화
 				</Button>
 			</div>
 		</div>
